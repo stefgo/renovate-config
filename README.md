@@ -7,9 +7,10 @@ workflow in each repository.
 
 ## What it does
 
-- **Proposes** updates once a week, Monday before 6 am (Europe/Berlin), as pull requests.
-- **Merges** a pull request itself, squashed, as soon as *every* check on it is
-  green. A red pull request stays open for a human, and so does an update of
+- **Runs** once a day at noon (Europe/Berlin).
+- **Proposes** updates once a week, on Monday's run, as pull requests.
+- **Merges** a pull request itself, squashed, on the first run after *every*
+  check on it is green — usually Tuesday's. A red pull request stays open for a human, and so does an update of
   the Python or Node version the workflows run on.
 - **Covers** GitHub Actions, npm, Python requirements and pre-commit hooks.
 - **Releases nothing by itself:** action updates are committed as `ci(deps): …`,
@@ -22,7 +23,7 @@ workflow in each repository.
 | File | Purpose |
 |---|---|
 | `default.json` | The shared preset every repository extends |
-| `.github/workflows/renovate.yml` | The runner, hourly and on demand |
+| `.github/workflows/renovate.yml` | The runner, daily at noon and on demand |
 | `renovate.json` | This repository's own config, so the runner's actions stay current too |
 
 ### Why the preset looks the way it does
@@ -68,6 +69,7 @@ opened with `GITHUB_TOKEN` start no workflows, so their checks would never run.
 
 ## Running it by hand
 
-*Actions → Renovate → Run workflow*, optionally with log level `debug`. To force
-an update outside the Monday window, tick it in the repository's Dependency
+*Actions → Renovate → Run workflow*, optionally with log level `debug`. A run by
+hand merges green pull requests without waiting for the next noon. To force an
+update outside the Monday window, tick it in the repository's Dependency
 Dashboard issue; the next run opens the pull request.

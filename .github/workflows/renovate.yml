@@ -3,13 +3,15 @@ name: Renovate
 # One runner for every connected repository, instead of one Dependabot
 # configuration and one merge workflow per repository.
 #
-# Hourly although updates are only proposed on Monday mornings (see the
-# schedule in default.json): Renovate merges a pull request on the run after
-# its checks have turned green, so the run frequency is the merge delay, not
-# the update frequency. The repositories are public, so the minutes are free.
+# Daily at noon, German time. Updates are only proposed on Mondays (see the
+# schedule in default.json), but Renovate merges a pull request on the run
+# after its checks have turned green — so the Monday run opens the pull
+# requests and the Tuesday run merges the green ones. Run by hand to merge
+# sooner.
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "0 12 * * *"
+      timezone: Europe/Berlin
   workflow_dispatch:
     inputs:
       logLevel:

@@ -3,7 +3,7 @@
   "description": "Shared Renovate preset for the stefgo repositories. See README.md for why each setting is what it is.",
   "extends": ["config:recommended", ":semanticCommits"],
   "timezone": "Europe/Berlin",
-  "schedule": ["before 6am on monday"],
+  "schedule": ["on monday"],
   "automerge": true,
   "automergeType": "pr",
   "platformAutomerge": false,
