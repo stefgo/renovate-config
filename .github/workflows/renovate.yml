@@ -63,9 +63,17 @@ jobs:
           token: ${{ steps.app.outputs.token }}
         env:
           LOG_LEVEL: ${{ inputs.logLevel || 'info' }}
-          # Pilot: listed explicitly. The rollout switches to
-          # RENOVATE_AUTODISCOVER with a filter.
-          RENOVATE_REPOSITORIES: '["stefgo/renovate-config", "stefgo/ha-log-notifier"]'
+          # Listed explicitly: a repository is connected by adding it to the
+          # app's installation and here, and nothing joins by accident.
+          RENOVATE_REPOSITORIES: >-
+            [
+              "stefgo/renovate-config",
+              "stefgo/ha-log-notifier",
+              "stefgo/ha-crowdsec-integration",
+              "stefgo/ha-dmarc-monitor",
+              "stefgo/ha-statistics-legend-table",
+              "stefgo/ha-statistics-extended-graph"
+            ]
           # A repository takes part only with its own renovate config; there
           # is no onboarding pull request to wait for.
           RENOVATE_ONBOARDING: "false"
