@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Shared Renovate preset for the stefgo repositories. See README.md for why each setting is what it is.",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "timezone": "Europe/Berlin",
+  "schedule": ["before 6am on monday"],
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": false,
+  "automergeStrategy": "squash",
+  "pre-commit": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Action updates are CI changes, as they were with Dependabot.",
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "ci"
+    },
+    {
+      "description": "Never fix(deps): config:recommended marks runtime dependencies as fix, and a fix commit cuts a patch release. A dependency update releases nothing by itself.",
+      "matchManagers": ["npm", "pip_requirements", "pre-commit"],
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "Python test requirements are open ranges (>=) on purpose; an update inside the range needs no pull request.",
+      "matchManagers": ["pip_requirements"],
+      "rangeStrategy": "replace"
+    }
+  ]
+}

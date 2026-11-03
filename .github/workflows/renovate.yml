@@ -1,0 +1,74 @@
+name: Renovate
+
+# One runner for every connected repository, instead of one Dependabot
+# configuration and one merge workflow per repository.
+#
+# Hourly although updates are only proposed on Monday mornings (see the
+# schedule in default.json): Renovate merges a pull request on the run after
+# its checks have turned green, so the run frequency is the merge delay, not
+# the update frequency. The repositories are public, so the minutes are free.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: Renovate log level
+        type: choice
+        options: [info, debug]
+        default: info
+
+permissions:
+  contents: read
+
+# Two runs on the same repository would race for the same branches.
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    name: Renovate
+    runs-on: ubuntu-latest
+    steps:
+      # A GitHub App token, not GITHUB_TOKEN: pull requests opened with
+      # GITHUB_TOKEN start no workflows, so Tests and Validate would never run
+      # and nothing would ever be merged. Not a personal token either — the
+      # updates should not appear as the maintainer's own work.
+      - name: Create app token
+        id: app
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ vars.RENOVATE_CLIENT_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      # The commit author is the app's bot account. Its noreply address needs
+      # the numeric user id, which only the API knows.
+      - name: Resolve bot identity
+        id: bot
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          id=$(gh api "/users/${SLUG}%5Bbot%5D" --jq .id)
+          echo "username=${SLUG}[bot]" >> "$GITHUB_OUTPUT"
+          echo "author=${SLUG}[bot] <${id}+${SLUG}[bot]@users.noreply.github.com>" >> "$GITHUB_OUTPUT"
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v46.3.12
+        with:
+          token: ${{ steps.app.outputs.token }}
+        env:
+          LOG_LEVEL: ${{ inputs.logLevel || 'info' }}
+          # Pilot: listed explicitly. The rollout switches to
+          # RENOVATE_AUTODISCOVER with a filter.
+          RENOVATE_REPOSITORIES: '["stefgo/renovate-config", "stefgo/ha-log-notifier"]'
+          # A repository takes part only with its own renovate config; there
+          # is no onboarding pull request to wait for.
+          RENOVATE_ONBOARDING: "false"
+          RENOVATE_REQUIRE_CONFIG: required
+          RENOVATE_USERNAME: ${{ steps.bot.outputs.username }}
+          RENOVATE_GIT_AUTHOR: ${{ steps.bot.outputs.author }}
+          # Commits through the API are signed by GitHub and show as verified.
+          RENOVATE_PLATFORM_COMMIT: enabled
