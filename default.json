@@ -23,6 +23,12 @@
       "semanticCommitType": "chore"
     },
     {
+      "description": "The Python and Node versions the workflows run on follow what Home Assistant and the card toolchain support, not the newest release. Proposed, but merged by hand.",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["python", "node"],
+      "automerge": false
+    },
+    {
       "description": "Python test requirements are open ranges (>=) on purpose; an update inside the range needs no pull request.",
       "matchManagers": ["pip_requirements"],
       "rangeStrategy": "replace"

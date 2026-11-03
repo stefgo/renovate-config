@@ -9,7 +9,8 @@ workflow in each repository.
 
 - **Proposes** updates once a week, Monday before 6 am (Europe/Berlin), as pull requests.
 - **Merges** a pull request itself, squashed, as soon as *every* check on it is
-  green. A red pull request stays open for a human.
+  green. A red pull request stays open for a human, and so does an update of
+  the Python or Node version the workflows run on.
 - **Covers** GitHub Actions, npm, Python requirements and pre-commit hooks.
 - **Releases nothing by itself:** action updates are committed as `ci(deps): …`,
   everything else as `chore(deps): …`. Neither type cuts a release.
@@ -31,6 +32,10 @@ workflow in each repository.
   Renovate checks the status itself and merges on its next run.
 - `semanticCommitType: chore` for npm, pip and pre-commit — `config:recommended`
   marks runtime dependencies as `fix(deps)`, and a `fix` commit cuts a patch release.
+- No automerge for the Python and Node versions in the workflows
+  (`setup-python`, `setup-node`) — they follow what Home Assistant and the card
+  toolchain support, not the newest release. The pull request is opened and
+  waits for a human.
 - `rangeStrategy: replace` for pip — the test requirements are open ranges (`>=`);
   an update inside the range needs no pull request.
 
