@@ -37,6 +37,12 @@
       "automerge": false
     },
     {
+      "description": "Home Assistant sets the Python version the tests run on: pytest-homeassistant-custom-component follows the interpreter HA requires, and on an older one pip silently resolves a months-old Home Assistant instead of failing. Raise this bound once HA moves to the next Python.",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["python"],
+      "allowedVersions": "<3.15"
+    },
+    {
       "description": "Python test requirements are open ranges (>=) on purpose; an update inside the range needs no pull request.",
       "matchManagers": ["pip_requirements"],
       "rangeStrategy": "replace"

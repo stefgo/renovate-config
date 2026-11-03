@@ -38,6 +38,11 @@ workflow in each repository.
   (`setup-python`, `setup-node`) — they follow what Home Assistant and the card
   toolchain support, not the newest release. The pull request is opened and
   waits for a human.
+- Python held below 3.15 in the workflows — Home Assistant decides the Python
+  its test package installs on, and on a Python it has left behind pip quietly
+  resolves an old Home Assistant instead of failing. The bound moves when HA
+  moves; the ruff and mypy target versions in each repository stay at the
+  oldest Python its supported HA releases run on.
 - `rangeStrategy: replace` for pip — the test requirements are open ranges (`>=`);
   an update inside the range needs no pull request.
 - One group for all minor and patch updates — Renovate merges a single pull
