@@ -8,13 +8,14 @@ workflow in each repository.
 ## What it does
 
 - **Runs** once a day at noon (Europe/Berlin).
-- **Proposes** updates once a week, on Monday's run, as pull requests.
+- **Proposes** updates once a week, on Monday's run, as pull requests: every
+  minor and patch update together in one, each major update in its own.
 - **Merges** a pull request itself, squashed, on the first run after *every*
   check on it is green — usually Tuesday's. A red pull request stays open for a human, and so does an update of
   the Python or Node version the workflows run on.
 - **Covers** GitHub Actions, npm, Python requirements and pre-commit hooks.
-- **Releases nothing by itself:** action updates are committed as `ci(deps): …`,
-  everything else as `chore(deps): …`. Neither type cuts a release.
+- **Releases nothing by itself:** single action updates are committed as
+  `ci(deps): …`, everything else as `chore(deps): …`. Neither type cuts a release.
 - Keeps a **Dependency Dashboard** issue in each repository: pending, blocked and
   scheduled updates, with checkboxes to start one right away.
 
@@ -39,6 +40,14 @@ workflow in each repository.
   waits for a human.
 - `rangeStrategy: replace` for pip — the test requirements are open ranges (`>=`);
   an update inside the range needs no pull request.
+- One group for all minor and patch updates — Renovate merges a single pull
+  request per run and then stops, so the rest go against the new base branch on
+  the next one. With a daily run, six separate pull requests took six days. The
+  group is one pull request and one day; if an update in it breaks the checks,
+  the whole group waits for a human. Major updates stay separate so each can be
+  judged on its own. The Python and Node versions stay out of the group, because
+  they are merged by hand and would hold everything else back. The group is
+  committed as `chore(deps)`, since it mixes action updates with the rest.
 
 ## Connecting a repository
 

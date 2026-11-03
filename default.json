@@ -23,6 +23,14 @@
       "semanticCommitType": "chore"
     },
     {
+      "description": "One pull request a week for every minor and patch update. Renovate merges one pull request per run, so with a daily run each separate one would cost a day. The Python and Node versions stay out: they are merged by hand and would hold the whole group. A group mixes ci and chore updates, so the type is set; neither cuts a release.",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchDepNames": ["!python", "!node"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch",
+      "semanticCommitType": "chore"
+    },
+    {
       "description": "The Python and Node versions the workflows run on follow what Home Assistant and the card toolchain support, not the newest release. Proposed, but merged by hand.",
       "matchManagers": ["github-actions"],
       "matchDepNames": ["python", "node"],
