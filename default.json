@@ -31,8 +31,7 @@
       "semanticCommitType": "chore"
     },
     {
-      "description": "The Python and Node versions the workflows run on follow what Home Assistant and the card toolchain support, not the newest release. Proposed, but merged by hand.",
-      "matchManagers": ["github-actions"],
+      "description": "Python and Node versions follow what Home Assistant, the card toolchain and the engines field of a package support, not the newest release -- in the workflows, in .nvmrc and in a Dockerfile's base image alike. Proposed, but merged by hand.",
       "matchDepNames": ["python", "node"],
       "automerge": false
     },

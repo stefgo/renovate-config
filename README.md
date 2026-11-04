@@ -12,7 +12,7 @@ workflow in each repository.
   minor and patch update together in one, each major update in its own.
 - **Merges** a pull request itself, squashed, on the first run after *every*
   check on it is green — usually Tuesday's. A red pull request stays open for a human, and so does an update of
-  the Python or Node version the workflows run on.
+  the Python or Node version — in a workflow, in `.nvmrc` or in a Dockerfile.
 - **Covers** GitHub Actions, npm, Python requirements and pre-commit hooks.
 - **Releases nothing by itself:** single action updates are committed as
   `ci(deps): …`, everything else as `chore(deps): …`. Neither type cuts a release.
@@ -34,10 +34,12 @@ workflow in each repository.
   Renovate checks the status itself and merges on its next run.
 - `semanticCommitType: chore` for npm, pip and pre-commit — `config:recommended`
   marks runtime dependencies as `fix(deps)`, and a `fix` commit cuts a patch release.
-- No automerge for the Python and Node versions in the workflows
-  (`setup-python`, `setup-node`) — they follow what Home Assistant and the card
-  toolchain support, not the newest release. The pull request is opened and
-  waits for a human.
+- No automerge for the Python and Node versions, wherever they are set — the
+  workflows (`setup-python`, `setup-node`), `.nvmrc`, a Dockerfile's base image
+  (`node:22-bookworm`). They follow what Home Assistant, the card toolchain and
+  a package's `engines` support, not the newest release, and a Node major in
+  the image without the others is a project half moved. The pull request is
+  opened and waits for a human.
 - Python held below 3.15 in the workflows — Home Assistant decides the Python
   its test package installs on, and on a Python it has left behind pip quietly
   resolves an old Home Assistant instead of failing. The bound moves when HA
