@@ -18,6 +18,8 @@ workflow in each repository.
   the React projects, Dockerfiles and Compose files.
 - **Releases nothing by itself:** single action updates are committed as
   `ci(deps): …`, everything else as `chore(deps): …`. Neither type cuts a release.
+- Opens a pull request for a **security update** right away, outside the Monday
+  window, as soon as GitHub reports a vulnerable version.
 - Keeps a **Dependency Dashboard** issue in each repository: pending, blocked and
   scheduled updates, with checkboxes to start one right away.
 
@@ -100,9 +102,20 @@ The runner authenticates as a GitHub App, not with `GITHUB_TOKEN`: pull requests
 opened with `GITHUB_TOKEN` start no workflows, so their checks would never run.
 
 - **App permissions** (repository): Contents, Pull requests, Issues and Workflows
-  read & write; Checks, Commit statuses and Metadata read. No webhook.
+  read & write; Checks, Commit statuses, Dependabot alerts and Metadata read. No
+  webhook. Without *Dependabot alerts* Renovate cannot see a vulnerability and
+  opens no security update.
 - **This repository:** variable `RENOVATE_CLIENT_ID` (the app's Client ID) and
   secret `RENOVATE_APP_PRIVATE_KEY` (a private key generated for the app).
+- **GitHub Packages:** the npm registry there asks for a token even for a public
+  package. The runner hands Renovate its own `GITHUB_TOKEN` (`packages: read`),
+  as a host rule for the lookups and as `NPM_TOKEN` for the lock file update.
+  If an `@stefgo/*` package ever becomes private, a classic PAT with
+  `read:packages` takes its place.
+- In a connected repository, turn off *Dependabot security updates*
+  (*Settings → Code security*) and leave *Dependabot alerts* on: the alerts are
+  what Renovate reads, and the security updates would be a second pull request
+  for the same fix.
 
 ## Running it by hand
 

@@ -32,6 +32,10 @@ jobs:
   renovate:
     name: Renovate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The React projects install @stefgo/* from GitHub Packages, see below.
+      packages: read
     steps:
       # A GitHub App token, not GITHUB_TOKEN: pull requests opened with
       # GITHUB_TOKEN start no workflows, so Tests and Validate would never run
@@ -72,8 +76,20 @@ jobs:
               "stefgo/ha-crowdsec-integration",
               "stefgo/ha-dmarc-monitor",
               "stefgo/ha-statistics-legend-table",
-              "stefgo/ha-statistics-extended-graph"
+              "stefgo/ha-statistics-extended-graph",
+              "stefgo/dns-provider-manager"
             ]
+          # @stefgo/* comes from GitHub Packages, whose npm registry asks for a
+          # token even for a public package. This job's GITHUB_TOKEN (packages:
+          # read) is enough, and unlike a personal token it never expires. The
+          # host rule serves the lookups; NPM_TOKEN serves the lock file update,
+          # where npm reads the repository's .npmrc and its ${NPM_TOKEN}. Should
+          # the package become private, both need a classic PAT with
+          # read:packages instead.
+          RENOVATE_HOST_RULES: >-
+            [{"matchHost": "npm.pkg.github.com", "hostType": "npm", "token": "${{ secrets.GITHUB_TOKEN }}"}]
+          RENOVATE_CUSTOM_ENV_VARIABLES: >-
+            {"NPM_TOKEN": "${{ secrets.GITHUB_TOKEN }}"}
           # A repository takes part only with its own renovate config; there
           # is no onboarding pull request to wait for.
           RENOVATE_ONBOARDING: "false"
