@@ -77,7 +77,12 @@ jobs:
               "stefgo/ha-dmarc-monitor",
               "stefgo/ha-statistics-legend-table",
               "stefgo/ha-statistics-extended-graph",
-              "stefgo/dns-provider-manager"
+              "stefgo/dns-provider-manager",
+              "stefgo/keepalived-status-monitor",
+              "stefgo/docker-instance-manager",
+              "stefgo/samba-ad-manager",
+              "stefgo/proxmox-backup-client-manager",
+              "stefgo/react-ui-components"
             ]
           # @stefgo/* comes from GitHub Packages, whose npm registry asks for a
           # token even for a public package. This job's GITHUB_TOKEN (packages:
