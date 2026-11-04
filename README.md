@@ -14,7 +14,8 @@ workflow in each repository.
   check on it is green — usually Tuesday's. A red pull request stays open for a human, and so does an update of
   the Python or Node version — in a workflow, in `.nvmrc` or in a Dockerfile.
 - **Waits** three days before it takes an npm release. Security updates do not wait.
-- **Covers** GitHub Actions, npm, Python requirements and pre-commit hooks.
+- **Covers** GitHub Actions, npm, Python requirements, pre-commit hooks and, in
+  the React projects, Dockerfiles and Compose files.
 - **Releases nothing by itself:** single action updates are committed as
   `ci(deps): …`, everything else as `chore(deps): …`. Neither type cuts a release.
 - Keeps a **Dependency Dashboard** issue in each repository: pending, blocked and
@@ -25,6 +26,7 @@ workflow in each repository.
 | File | Purpose |
 |---|---|
 | `default.json` | The shared preset every repository extends |
+| `react.json` | The preset of the React projects, on top of `default.json` |
 | `.github/workflows/renovate.yml` | The runner, daily at noon and on demand |
 | `renovate.json` | This repository's own config, so the runner's actions stay current too |
 
@@ -61,6 +63,19 @@ workflow in each repository.
   they are merged by hand and would hold everything else back. The group is
   committed as `chore(deps)`, since it mixes action updates with the rest.
 
+### The React projects (`react.json`)
+
+dns-provider-manager and its siblings are npm workspaces that ship a container
+image, and they share one more rule:
+
+- **Updates go to `dev`**, not `main` (`baseBranchPatterns`). `dev` takes every
+  change first; a push there builds the developer image and runs its smoke test,
+  so a bad update breaks that image instead of the released one. Renovate still
+  reads the repository's config from the default branch.
+
+Everything else comes from `default.json`. The `@stefgo/*` packages they install
+from GitHub Packages are reached through the runner (see below).
+
 ## Connecting a repository
 
 1. Add the repository to the GitHub App's installation
@@ -71,6 +86,7 @@ workflow in each repository.
      extends: ["github>stefgo/renovate-config"],
    }
    ```
+   A React project extends `github>stefgo/renovate-config:react` instead.
    Repository-specific rules (groups, held versions) go below `extends`.
 3. Remove `.github/dependabot.yml` and any Dependabot merge workflow.
 4. Add the repository to `RENOVATE_REPOSITORIES` in the workflow.

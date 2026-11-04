@@ -1,0 +1,6 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "The React projects: npm workspaces, a container image and a dev branch that takes every change first. See README.md.",
+  "extends": ["github>stefgo/renovate-config"],
+  "baseBranchPatterns": ["dev"]
+}
