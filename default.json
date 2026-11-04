@@ -36,6 +36,11 @@
       "automerge": false
     },
     {
+      "description": "A compromised npm release is usually found and pulled within hours. Waiting three days keeps it out; security updates do not wait.",
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
       "description": "Home Assistant sets the Python version the tests run on: pytest-homeassistant-custom-component follows the interpreter HA requires, and on an older one pip silently resolves a months-old Home Assistant instead of failing. Raise this bound once HA moves to the next Python.",
       "matchManagers": ["github-actions"],
       "matchDepNames": ["python"],

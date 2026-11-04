@@ -13,6 +13,7 @@ workflow in each repository.
 - **Merges** a pull request itself, squashed, on the first run after *every*
   check on it is green — usually Tuesday's. A red pull request stays open for a human, and so does an update of
   the Python or Node version — in a workflow, in `.nvmrc` or in a Dockerfile.
+- **Waits** three days before it takes an npm release. Security updates do not wait.
 - **Covers** GitHub Actions, npm, Python requirements and pre-commit hooks.
 - **Releases nothing by itself:** single action updates are committed as
   `ci(deps): …`, everything else as `chore(deps): …`. Neither type cuts a release.
@@ -40,6 +41,10 @@ workflow in each repository.
   a package's `engines` support, not the newest release, and a Node major in
   the image without the others is a project half moved. The pull request is
   opened and waits for a human.
+- `minimumReleaseAge: 3 days` for npm — a hijacked maintainer account publishes
+  a release that is usually found and pulled within hours. Three days keep it
+  out at the cost of a slightly later update; with the Monday window most
+  releases are older than that anyway. Security updates ignore the wait.
 - Python held below 3.15 in the workflows — Home Assistant decides the Python
   its test package installs on, and on a Python it has left behind pip quietly
   resolves an old Home Assistant instead of failing. The bound moves when HA
