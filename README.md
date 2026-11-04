@@ -68,12 +68,20 @@ workflow in each repository.
 ### The React projects (`react.json`)
 
 dns-provider-manager and its siblings are npm workspaces that ship a container
-image, and they share one more rule:
+image, and they share two more rules:
 
 - **Updates go to `dev`**, not `main` (`baseBranchPatterns`). `dev` takes every
   change first; a push there builds the developer image and runs its smoke test,
   so a bad update breaks that image instead of the released one. Renovate still
   reads the repository's config from the default branch.
+- **The lock file is refreshed every Monday** (`lockFileMaintenance`), merged
+  like any other pull request once it is green. Renovate fixes a vulnerability
+  only in a dependency a `package.json` names; one that comes in through another
+  package (`postcss-selector-parser` through `tailwindcss`) is fixed by nothing
+  else, as Dependabot did. The refresh takes the newest version every range
+  allows, so such a fix arrives within a week. It cannot apply the three-day
+  wait of `minimumReleaseAge`. The schedule is set to `on monday` because the
+  default (`before 4am on monday`) never meets the runner's noon run.
 
 Everything else comes from `default.json`. The `@stefgo/*` packages they install
 from GitHub Packages are reached through the runner (see below).
