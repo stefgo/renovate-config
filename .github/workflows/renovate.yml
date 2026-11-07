@@ -75,7 +75,7 @@ jobs:
               "stefgo/ha-log-notifier",
               "stefgo/ha-crowdsec-integration",
               "stefgo/ha-dmarc-monitor",
-              "stefgo/ha-statistics-legend-table",
+              "stefgo/ha-legend-table",
               "stefgo/ha-statistics-extended-graph",
               "stefgo/dns-provider-manager",
               "stefgo/keepalived-status-monitor",
