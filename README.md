@@ -8,16 +8,21 @@ workflow in each repository.
 ## What it does
 
 - **Runs** once a day at noon (Europe/Berlin).
-- **Proposes** updates once a week, on Monday's run, as pull requests: every
-  minor and patch update together in one, each major update in its own.
+- **Proposes** updates once a week, on Monday's run, as pull requests: the minor
+  and patch updates of the running system in one, all other minor and patch
+  updates in a second, each major update in its own.
 - **Merges** a pull request itself, squashed, on the first run after *every*
   check on it is green — usually Tuesday's. A red pull request stays open for a human, and so does an update of
   the Python or Node version — in a workflow, in `.nvmrc` or in a Dockerfile.
 - **Waits** three days before it takes an npm release. Security updates do not wait.
 - **Covers** GitHub Actions, npm, Python requirements, pre-commit hooks and, in
   the React projects, Dockerfiles and Compose files.
-- **Releases nothing by itself:** single action updates are committed as
-  `ci(deps): …`, everything else as `chore(deps): …`. Neither type cuts a release.
+- **Makes an update of the running system releasable:** an npm `dependency`
+  (not a `devDependency`), the base image of a shipped Dockerfile (not `*.dev`)
+  and the lock file refresh are committed as `fix(deps): …`, so `bump: auto`
+  releases them as a patch, and noted in `.release/next.md`, so the release is
+  not refused for want of a hand-written part. Everything else stays
+  `ci(deps): …` (single action updates) or `chore(deps): …` and cuts no release.
 - Opens a pull request for a **security update** right away, outside the Monday
   window, as soon as GitHub reports a vulnerable version.
 - Keeps a **Dependency Dashboard** issue in each repository: pending, blocked and
@@ -29,7 +34,9 @@ workflow in each repository.
 |---|---|
 | `default.json` | The shared preset every repository extends |
 | `react.json` | The preset of the React projects, on top of `default.json` |
+| `scripts/release-note.mjs` | Writes an update of the running system into the project's `.release/next.md` |
 | `.github/workflows/renovate.yml` | The runner, daily at noon and on demand |
+| `.github/workflows/ci.yml` | Tests the script and validates the presets |
 | `renovate.json` | This repository's own config, so the runner's actions stay current too |
 
 ### Why the preset looks the way it does
@@ -37,8 +44,29 @@ workflow in each repository.
 - `platformAutomerge: false` — the repositories have no branch protection, so
   GitHub's native auto-merge would merge at once without waiting for checks.
   Renovate checks the status itself and merges on its next run.
-- `semanticCommitType: chore` for npm, pip and pre-commit — `config:recommended`
-  marks runtime dependencies as `fix(deps)`, and a `fix` commit cuts a patch release.
+- `semanticCommitType: chore` for npm, pip and pre-commit — a `fix` commit cuts a
+  patch release, and a build tool, a test or a linter changes nothing a user
+  runs. The runtime rule below makes what does reach the running system a `fix`.
+- The runtime rule — npm `dependencies`, the base images of the Dockerfiles that
+  are shipped, the lock file refresh. They end up in the image (after
+  `npm prune --omit=dev`) or in a card's bundle, so an update of them is a change
+  a user gets and is worth a release: `fix(deps)`. The stefgo release workflow
+  refuses a release whose `.release/next.md` is empty, though, so a postUpgradeTask
+  runs `scripts/release-note.mjs` before Renovate commits, and the update arrives
+  together with its line:
+  ```markdown
+  ### Dependency updates
+
+  - `fastify` 5.6.1 → 5.7.0
+  - `node` image 22 → 24
+  ```
+  A dependency already listed keeps the version it came from and takes the new
+  target, so the list does not grow until the next stable release empties the
+  file. The script only writes what is runtime by the same condition as the rule:
+  the Node major also carries `.nvmrc` and `@types/node`, and those stay out. In a
+  branch that mixes, the highest type wins (`fix` over `chore`). A repository
+  without `.release/next.md` is left alone. Hand-written text in the file stays as
+  it is; the section is kept at its place or added at the end.
 - No automerge for the Python and Node versions, wherever they are set — the
   workflows (`setup-python`, `setup-node`), `.nvmrc`, a Dockerfile's base image
   (`node:22-bookworm`). They follow what Home Assistant, the card toolchain and
@@ -56,14 +84,17 @@ workflow in each repository.
   oldest Python its supported HA releases run on.
 - `rangeStrategy: replace` for pip — the test requirements are open ranges (`>=`);
   an update inside the range needs no pull request.
-- One group for all minor and patch updates — Renovate merges a single pull
-  request per run and then stops, so the rest go against the new base branch on
-  the next one. With a daily run, six separate pull requests took six days. The
-  group is one pull request and one day; if an update in it breaks the checks,
-  the whole group waits for a human. Major updates stay separate so each can be
-  judged on its own. The Python and Node versions stay out of the group, because
-  they are merged by hand and would hold everything else back. The group is
-  committed as `chore(deps)`, since it mixes action updates with the rest.
+- Two groups for the minor and patch updates, runtime and development —
+  Renovate merges a single pull request per run and then stops, so the rest go
+  against the new base branch on the next one. With a daily run, six separate
+  pull requests took six days; the two groups take two. They are kept apart
+  because the runtime group is a `fix` that writes the release notes and the
+  development group is neither — in one group, every `eslint` update would cut a
+  release. If an update in a group breaks the checks, the whole group waits for a
+  human. Major updates stay separate so each can be judged on its own. The Python
+  and Node versions stay out of both groups, because they are merged by hand and
+  would hold everything else back. The development group is committed as
+  `chore(deps)`, since it mixes action updates with the rest.
 
 ### The React projects (`react.json`)
 
@@ -81,7 +112,8 @@ image, and they share two more rules:
   else, as Dependabot did. The refresh takes the newest version every range
   allows, so such a fix arrives within a week. It cannot apply the three-day
   wait of `minimumReleaseAge`. The schedule is set to `on monday` because the
-  default (`before 4am on monday`) never meets the runner's noon run.
+  default (`before 4am on monday`) never meets the runner's noon run. Like any
+  runtime update it is a `fix(deps)` and leaves a line in `.release/next.md`.
 
 Everything else comes from `default.json`. The `@stefgo/*` packages they install
 from GitHub Packages are reached through the runner (see below).
@@ -120,6 +152,12 @@ opened with `GITHUB_TOKEN` start no workflows, so their checks would never run.
   as a host rule for the lookups and as `NPM_TOKEN` for the lock file update.
   If an `@stefgo/*` package ever becomes private, a classic PAT with
   `read:packages` takes its place.
+- **The release note script:** Renovate runs in a container and clones the
+  repositories there, so the job checks out `scripts/` and mounts it at
+  `/opt/renovate-config/scripts` (`docker-volumes`, next to the default
+  `/tmp:/tmp`). `RENOVATE_ALLOWED_COMMANDS` admits exactly
+  `node /opt/renovate-config/scripts/release-note.mjs` and nothing else; it runs
+  without a shell. A change to the script reaches every repository on the next run.
 - In a connected repository, turn off *Dependabot security updates*
   (*Settings → Code security*) and leave *Dependabot alerts* on: the alerts are
   what Renovate reads, and the security updates would be a second pull request

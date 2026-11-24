@@ -18,17 +18,37 @@
       "semanticCommitType": "ci"
     },
     {
-      "description": "Never fix(deps): config:recommended marks runtime dependencies as fix, and a fix commit cuts a patch release. A dependency update releases nothing by itself.",
+      "description": "chore by default: a fix commit cuts a patch release, and a build tool, a test or a linter changes nothing a user runs. What does reach the running system is made fix(deps) by the runtime rule below.",
       "matchManagers": ["npm", "pip_requirements", "pre-commit"],
       "semanticCommitType": "chore"
     },
     {
-      "description": "One pull request a week for every minor and patch update. Renovate merges one pull request per run, so with a daily run each separate one would cost a day. The Python and Node versions stay out: they are merged by hand and would hold the whole group. A group mixes ci and chore updates, so the type is set; neither cuts a release.",
+      "description": "One pull request a week for every minor and patch update that stays out of the running system. Renovate merges one pull request per run, so with a daily run each separate one would cost a day. The Python and Node versions stay out: they are merged by hand and would hold the whole group. A group mixes ci and chore updates, so the type is set; neither cuts a release.",
       "matchUpdateTypes": ["minor", "patch"],
       "matchDepNames": ["!python", "!node"],
-      "groupName": "all non-major dependencies",
-      "groupSlug": "all-minor-patch",
+      "groupName": "development dependencies",
+      "groupSlug": "dev-minor-patch",
       "semanticCommitType": "chore"
+    },
+    {
+      "description": "The running system: npm dependencies (not devDependencies) -- what an image keeps after npm prune --omit=dev and what a card bundles --, the base images of the shipped Dockerfiles (not *.dev) and the lock file refresh. fix(deps), so bump auto releases it as a patch, and noted in .release/next.md, because a release with nothing written there is refused. See scripts/release-note.mjs.",
+      "matchJsonata": ["(manager = 'npm' and depType = 'dependencies') or (manager = 'dockerfile' and $not($contains(packageFile, '.dev'))) or updateType = 'lockFileMaintenance'"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "deps",
+      "postUpgradeTasks": {
+        "commands": ["node /opt/renovate-config/scripts/release-note.mjs"],
+        "dataFileTemplate": "[{{#each upgrades}}{\"depName\":\"{{{depName}}}\",\"manager\":\"{{{manager}}}\",\"depType\":\"{{{depType}}}\",\"packageFile\":\"{{{packageFile}}}\",\"updateType\":\"{{{updateType}}}\",\"currentValue\":\"{{{currentValue}}}\",\"newValue\":\"{{{newValue}}}\",\"currentVersion\":\"{{{currentVersion}}}\",\"newVersion\":\"{{{newVersion}}}\"}{{#unless @last}},{{/unless}}{{/each}}]",
+        "fileFilters": [".release/next.md"],
+        "executionMode": "branch"
+      }
+    },
+    {
+      "description": "The minor and patch updates of the running system travel in a group of their own: it is a fix and writes the notes, the development group does neither. Same condition as the rule above; the Python and Node versions stay out for the same reason as there.",
+      "matchJsonata": ["(manager = 'npm' and depType = 'dependencies') or (manager = 'dockerfile' and $not($contains(packageFile, '.dev'))) or updateType = 'lockFileMaintenance'"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchDepNames": ["!python", "!node"],
+      "groupName": "runtime dependencies",
+      "groupSlug": "runtime-minor-patch"
     },
     {
       "description": "Python and Node versions follow what Home Assistant, the card toolchain and the engines field of a package support, not the newest release -- in the workflows, in .nvmrc and in a Dockerfile's base image alike. Proposed, but merged by hand.",

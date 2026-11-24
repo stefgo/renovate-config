@@ -1,0 +1,30 @@
+name: Check
+
+# The presets and the release note script are read by every connected
+# repository; a mistake in either would first show in their pull requests.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Presets and script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+
+      - name: Test the release note script
+        run: node --test scripts/
+
+      # The major the runner uses (renovatebot/github-action defaults to it).
+      - name: Validate the presets
+        run: npx --yes --package renovate@44 -- renovate-config-validator --strict default.json react.json renovate.json
